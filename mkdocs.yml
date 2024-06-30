@@ -19,8 +19,8 @@ theme:
     # - navigation.tracking # 地址栏中的 URL 会随当前位置变化为对应小节的 URL
     - navigation.indexes # 将 index 页面直接附到小节名上
     - navigation.top # 回到顶部按钮
-    # - navigation.sections # 二级导航是粗体
-    # - navigation.expand # 导航默认展开
+    - navigation.sections # 二级导航是粗体
+    - navigation.expand # 导航默认展开
     - toc.follow # toc 跟随
     # - toc.integrate # 文档 toc 集成到总目录中 
   language: 'zh'
