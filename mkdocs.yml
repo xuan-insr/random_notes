@@ -1,6 +1,8 @@
 nav:
   - 🏡 主页: https://xuan-insr.github.io/
-  - Random Notes: index.md
+  - 随机笔记: 
+    - ./blog/index.md
+
   
 site_name: 咸鱼暄的代码空间
 site_url: https://xuan-insr.github.io/
@@ -129,7 +131,7 @@ plugins:
   - git-revision-date-localized:
       enable_creation_date: true
       type: timeago
-  - statistics
+  # - statistics
   - termynal:
       title: ""
       buttons: macos
@@ -137,3 +139,12 @@ plugins:
         - "$"
         - ">"
         - "%"
+  - blog:
+      blog_toc: true
+      post_url_date_format: yyyy/MM
+      post_url_format: "{slug}"
+      post_readtime_words_per_minute: 120
+      archive: true
+      archive_date_format: yyyy-MM
+      post_excerpt: required
+      categories: true
