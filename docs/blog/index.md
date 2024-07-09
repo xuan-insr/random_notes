@@ -17,5 +17,6 @@
     特别地，有一些特殊分类用来表达 blog 的性质而非内容，状态一律采用 :rainbow:：
 
     - Daily：日常的 random notes。
+    - Topics：就某个话题展开的短文。
 
 ---
