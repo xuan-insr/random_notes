@@ -2,8 +2,8 @@
 date: 2024-07-07
 categories:
     - :rainbow:Topics
-    - :writing_hand_tone1:Observability
-    - :writing_hand_tone1:Prometheus
+    - :newspaper:Observability
+    - :newspaper:Prometheus
 ---
 
 # Prometheus
@@ -140,21 +140,23 @@ Prometheus 的 client library 支持以下 4 种指标类型；但这只是一�
 在 PromQL 中，大多数表达式归属于以下 3 种类型之一：
 
 - Scalar：单个浮点数数值；
-- Instant vector：一组时间序列，每个时间序列包含它在特定时间点的值，例如 Query `http_requests_total` 或者 `http_requests_total{method="GET"}` 返回在 query timestamp 这个时间点中每个时间序列的值；
+- Instant vector：一组时间序列，每个时间序列包含它在查询时间点前最后一次被采样到的值。例如 Query `http_requests_total` 或者 `http_requests_total{method="GET"}` 返回在 query timestamp 这个时间点之前每个时间序列最后一次被采样到的值；
     - 请注意：即使 `http_requests_total{method="GET"}` 得到的 instant vector 只包含 1 个元素，它也不能被视为 scalar。
-- Range vector：一组时间序列，每个时间序列包含它在一个时间段内每个时间点的值，例如 `http_requests_total[5m]` 返回在 5 分钟内每个时间序列的值。
+- Range vector：一组时间序列，每个时间序列包含它在查询时间段内每个时间点的值，例如 `http_requests_total[5m]` 返回在 5 分钟内每个时间序列的值。
 
 如果我们用 Python 做类比的话，上面的三个类型可以以如下方式表示：
 
-```Python linenums="1" hl_lines="1 5 10"
+```Python linenums="1" hl_lines="1 7 12"
 type Scalar = float
 
 type Labels = Dict[str, str]
-type LabeledScalar = Tuple[Labels, Scalar]
-type InstantVector = List[LabeledScalar]
+type Sample = Tuple[Timestamp, Scalar]
+
+type LabeledSample = Tuple[Labels, Sample]
+type InstantVector = List[LabeledSample]
 
 type TimeStamp = int
-type TimeSeries = List[Tuple[TimeStamp, Scalar]]
+type TimeSeries = List[Sample]
 type LabeledTimeSeries = Tuple[Labels, TimeSeries]
 type RangeVector = List[LabeledTimeSeries]
 ```
@@ -179,12 +181,20 @@ type RangeVector = List[LabeledTimeSeries]
 - `http_requests_total @ 1609746000` / `http_requests_total{method="GET"} @ 1609746000`
     - `@` 用于指定时间戳，例如 `@ 1609746000` 表示在时间戳 1609746000 的时候的值。
 
+!!! info "哪些 time series 会被包含在查询结果中？"
+    Prometheus 配置了一个 [staleness](https://prometheus.io/docs/prometheus/latest/querying/basics/#staleness) 时长，默认值是 5 分钟。
+    
+    在使用 Instant Vector Selector 时，在查询时间点前 staleness 时长的范围内出现过数据的所有 time series 会被包含在结果的 `InstantVector` 中；其值是该范围内最后一次采样到的值。
+
 以下表达式具有类型 `RangeVector`：
 
 - `http_requests_total[5m]`
 - `http_requests_total{method="GET"}[5m]`
 - `http_requests_total{method="GET"}[5m] offset 5m`
 - `http_requests_total{method="GET"}[5m] @ 1609746000`
+
+!!! info "哪些 time series 会被包含在查询结果中？"
+    对于 Range Vector Selector，Prometheus 会返回在查询时间内出现过数据的所有 time series；其值是在查询时间范围内每个时间点的值。
 
 ### 2.3 Operators | 运算符
 
@@ -231,6 +241,290 @@ type RangeVector = List[LabeledTimeSeries]
 
 #### 2.3.5 聚合运算符
 
+!!! note
+    除了 `topk` 和 `bottomk` 以外，所有聚合运算符都会在结果中删除 metrics name (`__name__`)，因为所得的值经过了处理，而原来 metrics name 不再有意义。
+
+聚合运算符将 InstantVector 按照标签聚合为元素更少的 InstantVector。例如：
+
+- `sum(http_requests_total)`：返回一个单元素的 InstantVector，标签为 `{}`，值为所有 `http_requests_total` 的和；
+- `sum(http_requests_total{method="GET"})`：返回一个单元素的 InstantVector，标签为 `{}`，值为所有 `http_requests_total{method="GET"}` 的和；
+- `sum(http_requests_total) by (method)`：返回一个 InstantVector；对于 `http_requests_total` 中的每个不同的 `method`，返回一个元素，标签只有 `method`，值为所有对应 method 的 `http_requests_total` 的和；
+- `sum(http_requests_total) by (method, code)`：类似，对于 `(method, code)` 的每种存在的组合，返回一个元素。
+- `sum(http_requests_total) without (method)`：与 `by` 相反：对于除了 `method` 以外的所有标签的每种存在组合，返回一个元素。
+    - 例如，标签只有 `method, code, api` 的话，那么 `by (method)` 和 `without (code, api)` 等价。
+
+以上的 `without` 和 `by` 不能共用；另外 `sum(v) by (<labels>)` 和 `sum by (<labels>) (v)` 是等价的。
+
+即：我们通过 `by` 或者 `without` 将 InstantVector 按照标签 **分组**，然后完成聚合操作；如果没有指定分组，则认为所有标签属于一组。这样的聚合运算符包括：
+
+- `sum`: 每组中所有元素的和；
+- `max`, `min`, `avg`, `stddev`, `stdvar`: 分别是最大值、最小值、平均值、标准差、方差；
+- `group`: 结果中的值全部为 1；
+- `count`: 每组中元素的个数。
+
+另外，还有一些聚合函数含有参数，其使用方法形如 `count_values("api", http_requests_total) by (code)`，表示对于每个 `code`，统计 label `api` 的不同值的个数。这样的聚合运算符包括：
+
+- `count_values(label, v)`: 对于每个组，统计 label 的不同值的个数；
+- `quantile(φ, v)`: 对于每个组，计算其中所有值中 φ 分位的值。
+
+与上述不同的两个聚合运算符是 `topk` 和 `bottomk`，它们保留每组中的前 k 个或后 k 个元素。
+
+
 ### 2.4 Functions | 函数
 
-### 2.5 API
+!!! note
+    请注意：几乎所有的函数 (除了 `sort`, `sort_desc`, `label_replace`) 都会在结果中删除 metrics name (`__name__`)，因为所得的值经过了处理，而原来 metrics name 不再有意义。
+
+下面，我们使用 `IV` 和 `RV` 分别替代 `InstantVector` 和 `RangeVector`。
+
+#### 数学运算
+
+- 【绝对值】`abs(v: IV) -> IV`: 结果中每个元素的值是原来元素的绝对值。
+- 【符号函数】`sgn(v: IV) -> IV`: 结果中每个元素的值是原来元素的正负性，即 1、0、-1。
+- 【向上取整】`ceil(v: IV) -> IV`: 结果中每个元素的值是原来元素的向上取整。
+- 【向下取整】`floor(v: IV) -> IV`: 结果中每个元素的值是原来元素的向下取整。
+- 【四舍五入】`round(v: IV, to_nearest: Scalar = 1) -> IV`: 结果中每个元素的值是原来元素的四舍五入值，取到最接近的 `to_nearest` 的倍数；`to_nearest` 可以是分数。
+- 【指数】`exp(v: IV) -> IV`: 结果中每个元素的值是原来元素的指数 $e^x$。
+- 【自然对数】`ln(v: IV) -> IV`: 结果中每个元素的值是原来元素的自然对数 $\ln(x)$。
+- 【对数】`log2(v: IV) -> IV`, `log10(v: IV) -> IV`: 结果中每个元素的值是原来元素的对数。
+- 【平方根】`sqrt(v: IV) -> IV`: 结果中每个元素的值是原来元素的平方根。
+- 【三角函数】另外还有这些三角函数，和上述类似：`sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`。
+- 【角度和弧度】`deg(v: IV) -> IV`, `rad(v: IV) -> IV`: 将角度和弧度相互转换。
+- 【$\pi$】`pi() -> Scalar` 返回 $\pi$。
+
+#### 时间
+
+- 【求值时的时间】`time() -> Scalar`: 返回计算表达式时的时间戳，即自 UTC 1970 年 1 月 1 日以来的秒数。
+- 【时间戳】`timestamp(v: IV) -> IV`: 返回 v 中每个时间序列的时间戳。
+- `day_of_month(v: IV = vector(time())) -> IV`: 返回 v 中每个时间序列的时间戳在所在月的第几天。
+    - 类似地，还有 `day_of_week`, `day_of_year`
+- `hour(v: IV = vector(time())) -> IV`: 返回 v 中每个时间序列的时间戳的在所在天中的小时 (0-23)。
+    - 类似地，还有 `minute`, `year`, `month`
+- `days_in_month(v: IV = vector(time())) -> IV`: 返回 v 中每个时间序列的时间戳对应的月份中有几天。
+
+#### 判断是否为空
+
+- `absent(v: IV) -> IV`: 如果 v 有任何元素，则返回一个空 vector；否则返回一个值为 1 的单元素 vector，label 为 v 中各元素 label 的共同部分。
+    - 用例：查询是否有 500 错误：`absent(http_requests_total{code="500"})`
+- `absent_over_time(v: RV) -> IV`: 如果 v 在时间范围内有任何元素，则返回一个空 vector；否则返回一个值为 1 的单元素 vector，label 为 v 中各元素 label 的共同部分
+    - 用例：查询最近 5 分钟是否有 500 错误：`absent_over_time(http_requests_total{code="500"}[5m])`
+
+#### 限制样本值
+
+- `clamp(v: IV, min: Scalar, max: Scalar) -> IV`: 结果中每个元素的值如果小于 min，则取 min；如果大于 max，则取 max；否则保持不变。
+    - 特别地：如果 min > max，则返回一个空 vector；如果 min 或 max 是 NaN，则结果为 NaN。
+- `clamp_max(v: IV, max: Scalar) -> IV`, `clamp_min(v: IV, min: Scalar) -> IV`: 与前一条类似。
+
+#### 变化情况
+
+- 【变化次数】`changes(v: RV) -> IV`: 返回 v 中每个时间序列的变化次数。
+    - 用例：查询最近 5 分钟 500 错误的变化次数：`changes(http_requests_total{code="500"}[5m])`
+- 【差值】`delta(v: RV) -> IV`: 返回 v 中每个时间序列的最后两个样本值的差值。
+    - 用例：查询最近 5 分钟 500 错误的差值：`delta(http_requests_total{code="500"}[5m])`
+    - 结果可能是非整数，因为必要时会进行插值。
+- 【增量】`increase(v: RV) -> IV`: 返回 v 中每个时间序列的增量。这只应被用于 Counter 类型的指标 (但并不会检查)。
+    - 它和 `delta` 的区别在于：如果时间范围内指标因为重启或者其他原因而破坏了单调性，`increase` 会加以补偿，例如 `0 -> 10 -> 2 -> 15` 会被补偿为 `0 -> 10 -> 12 -> 25`。
+    - 用例：查询最近 5 分钟 500 错误的增量：`increase(http_requests_total{code="500"}[5m])`
+- 【瞬时差值】`idelta(v: RV) -> IV`: 返回 v 中每个时间序列的最后两个样本值的差值。这只应被用于 Gauge 类型的指标 (但并不会检查)。
+- 【导数】`deriv(v: RV) -> IV`: 返回 v 中每个时间序列用 [简单线性回归](https://en.wikipedia.org/wiki/Simple_linear_regression) 计算出导数。这只应被用于 Gauge 类型的指标 (但并不会检查)。
+    - 用例：查询最近 5 分钟 500 错误的变化率：`deriv(http_requests_total{code="500"}[5m])`
+- 【Smoothing】`holt_winters(v: RV, sf: Scalar, tf: Scalar) -> IV`: 使用 Holt-Winters 指数平滑算法对 v 进行平滑处理。sf 和 tf 分别是平滑因子和时间因子。
+- 【增长率】`rate(v: RV) -> IV`: 返回 v 中每个时间序列的增长率。这只应被用于 Counter 类型的指标。如果时间范围内指标因为重启或者其他原因而破坏了单调性，会加以补偿。
+    - 用例：查询最近 5 分钟 500 错误的增长率：`rate(http_requests_total{code="500"}[5m])`
+- 【瞬时增长率】`irate(v: RV) -> IV`: 返回 v 中每个时间序列基于最后两个样本值计算出的瞬时增长率。这只应被用于绘制不稳定的、快速增长的 counters。如果时间范围内指标因为重启或者其他原因而破坏了单调性，会加以补偿。
+- 【线性预测】`predict_linear(v: RV, t: Scalar) -> IV`: 基于 [简单线性回归](https://en.wikipedia.org/wiki/Simple_linear_regression)，预测 v 中每个时间序列在 t 秒后的值。
+- 【重置次数】`resets(v: RV) -> IV`: 返回 v 中每个时间序列的重置次数（两次连续采样中的任何减少都被认为是重置）。这只应被用于 Counter 类型的指标。
+
+#### 标签操作
+
+- 【标签替换】`label_replace(v: IV, dst_label: String, replacement: String, src_label: String, regex: String) -> IV`: 对于 v 中的每个 time series，如果其标签 `src_label` 的值匹配 `regex`，则将其替换为 `replacement`，放到 `dst_label` 中；如果不匹配，则保持不变。`replacement` 中可以使用 `$1`, `$2`, ... 来引用 `regex` 中的分组。
+    - 例如，`label_replace(http_requests_total{method="GET"}, "new_label", "$1", "api", "(.*)/.*")` 会将 `http_requests_total{api="a/b"}` 转换为 `http_requests_total{new_label="a"}`。
+- 【标签连接】`label_join(v: IV, dst_label: String, separator: String, src_label_1: String, src_label_2: String, ...) -> IV`: 将 v 中的标签 src_label_1, src_label_2, ... 的值连接起来，用 separator 分隔，放到 dst_label 中。
+    - 例如，`label_join(http_requests_total{method="GET"}, "new_label", "-", "method", "code")` 会将 `http_requests_total{method="GET", code="200"}` 转换为 `http_requests_total{new_label="GET-200"}`。
+
+#### 类型转换
+
+- 【类型转换】`scalar(v: IV) -> Scalar`: 如果 v 恰有 1 个时间序列，返回其值；否则返回 NaN。
+- 【类型转换】`vector(s: Scalar) -> IV`: 将 s 转换为一个时间序列，其值为 s，没有标签。
+
+#### 排序
+
+- 【排序】`sort(v: IV) -> IV`, `sort_desc(v: IV) -> IV`: 返回 v 中的时间序列按照值排序后的结果。
+- 【按 label 排序】`sort_by_label(v: IV, label: String, ...) -> IV`, `sort_by_label_desc(v: IV, label: String, ...) -> IV`: 返回 v 中的时间序列按照指定 `label` 排序后的结果；如果标签一致，按样本值排序。
+    - 排序采用 [natural sort order](https://en.wikipedia.org/wiki/Natural_sort_order)，即 `z2` 排在 `z11` 之前。
+
+#### 用于 RV 的聚合
+
+`<aggregation>_over_time(v: RV) -> IV`: 随时间聚合 v 中的每个时间序列。`<aggregation>` 可以是给定区间内的：
+
+- `avg`：平均值；
+- `min`：最小值；
+- `max`：最大值；
+- `sum`：和；
+- `count`：计数；
+- `quantile_over_time(φ: Scalar, v: RV) -> IV`：给定区间内的 φ 分位数；
+- `stddev`：标准差；
+- `stdvar`：方差；
+- `last`：最后一个值；
+- `present`：返回所有出现过的标签值，值均为 1。
+
+#### 直方图相关函数
+
+[TODO](https://prometheus.io/docs/prometheus/latest/querying/functions/#histogram_avg)
+
+### 2.5 Subqueries | 子查询
+
+查询中可以包含子查询。例如 `max_over_time(deriv(rate(distance_covered_total[5s])[30s:5s])[10m:])`，我们由内而外地解释这个查询的含义：
+
+- `[rv1]`: `distance_covered_total[5s]`：`RV`, 取 `distance_covered_total` 5s 内的采样值
+    - 我们可以理解为「5s 的各个采样点时内 (各个 label 标记的，下同) 车辆行进的距离」
+- `[iv2]`: `rate(rv1)`: `IV`，计算 `rv1` 的增长率
+    - 我们可以理解为「5s 内的车辆行进的距离的增长率」，即「5s 内车辆的速度」
+- `[rv3]`: `iv2[30s:5s]`: `RV`, 取增长率近 30s 的采样值，分辨率为 5s
+    - 分辨率 (resolution) 是指多少秒一个样本。即，`rv3` 由 `iv2` 近 30s 内每 5s 做一次查询的结果组成
+    - 我们可以理解为「近 30s 内每 5s 的车辆速度」
+- `[iv4]`: `deriv(rv3)`: `IV`，计算 `rv3` 中每个时间序列的导数
+    - 我们可以理解为「近 30s 内车辆速度的变化率」，即「30s 内车辆的加速度」
+- `[rv5]`: `iv4[10m:]`: `RV`, 取 `iv4` 近 10m 的采样值
+    - `iv4[10m:]` 表示取 `iv4` 中最近 10m 的数据，分辨率为查询的默认设置
+    - 我们可以理解为「近 10 分钟内各个采样点计算出的车辆的加速度」
+- `[iv6]`: `max_over_time(rv5)`: `IV`，计算 `rv5` 中每个时间序列的最大值
+    - 我们可以理解为「近 10 分钟内车辆的最大加速度」
+
+### 2.6 API
+
+#### 2.6.1 即时查询
+
+即时查询获取 Query 在当前时间或给定时间点的结果；接口为 `/query`，参数包括 `query`, `time` 和 `timeout`。例如：
+
+```python
+INSTANT_QUERY = "query/"
+
+def instant_query(promql: str, time: Optional[str] = None, timeout: Optional[str] = None):
+    url = f"{API}{INSTANT_QUERY}"
+    params = {
+        "query": promql,
+        "time": time,
+        "timeout": timeout
+    }
+    response = requests.get(url, params=params)
+    if not response.ok:
+        raise requests.HTTPError(f"Failed to query {url}: {response.text}")
+    return response.json()
+
+promql = '''sum(fastapi_requests_total{path!="/metrics"}) by (path)'''
+time = "2024-07-01T20:00:00.000Z" # rfc3339 OR unix_timestamp
+timeout = "10s"
+result = instant_query(promql, time, timeout)
+pprint(result)
+```
+
+![](assets/2024-07-10-18-35-54.png)
+
+(`pprint` 来自 `rich.pretty`。)
+
+使用 POST 也能够进行查询，例如：
+
+```python
+def instant_query(promql: str, time: Optional[str] = None, timeout: Optional[str] = None):
+    url = f"{API}{INSTANT_QUERY}"
+    data = {
+        "query": promql,
+        "time": time,
+        "timeout": timeout
+    }
+    response = requests.post(url, data=data)
+    if not response.ok:
+        raise requests.HTTPError(f"Failed to query {url}: {response.text}")
+    return response.json()
+
+result = instant_query(promql, time, timeout)
+pprint(result)
+```
+
+![](assets/2024-07-10-18-36-24.png)
+
+查询的结果中有一个 `resultType`，表示结果的类型。结果可能是 `string`, `scalar`, `vector` (表示 Instant Vector), `matrix` (表示 Range Vector) 之一。这意味着我们也可以查询 RangeVector，例如：
+
+```python
+promql = '''sum(fastapi_requests_total{path=~"/[^/]*"}) by (path) [10m:2m]'''
+
+result = instant_query(promql, time, timeout)
+pprint(result)
+```
+
+![](assets/2024-07-10-18-36-46.png)
+
+如果不提供 `time`，则表示查询当前时间的结果：
+
+```
+result = instant_query(promql, None, timeout)
+pprint(result)
+```
+
+![](assets/2024-07-10-18-37-08.png)
+
+#### 2.6.2 范围查询
+
+范围查询获取 Query 在给定的一段时间内、给定频率下的结果；接口为 `/query_range`，参数包括 `query`, `start`, `end`, `step` 和 `timeout`。例如：
+
+```python
+RANGE_QUERY = "query_range/"
+
+def range_query(promql: str, start: str, end: str, step: str, timeout: Optional[str] = None):
+    url = f"{API}{RANGE_QUERY}"
+    data = {
+        "query": promql,
+        "start": start,
+        "end": end,
+        "step": step,
+        "timeout": timeout
+    }
+    response = requests.post(url, data=data)
+    if not response.ok:
+        raise requests.HTTPError(f"Failed to query {url}: {response.text}")
+    return response.json()
+
+promql = '''sum(fastapi_requests_total{path=~"/v1/[^/]*/"}) by (path)'''
+start = "2024-07-01T20:00:00.000Z"
+end = "2024-07-01T20:10:00.000Z"
+step = "5m"
+
+result = range_query(promql, start, end, step, timeout)
+pprint(result)
+```
+
+![](assets/2024-07-10-18-39-03.png)
+
+但是，range query 不支持查询 Range Vector，只能查询 Instant Vector, Scalar 或 String。因为 Range Vector 本身就是一段时间内的 Instant Vector，所以范围查询的结果是一个 `matrix`：
+
+```python
+promql = '''sum(fastapi_requests_total) by (path) [10m:2m]'''
+
+try:
+    range_query(promql, start, end, step, timeout)
+except requests.HTTPError as e:
+    print(e)
+```
+
+结果是 `Failed to query <API>: {"status":"error","errorType":"bad_data","error":"invalid expression type \"range vector\" for range query, must be Scalar or instant Vector"}`。
+
+即使查询结果是一个 Scalar，返回类型也是一个 `matrix`：
+
+```python
+promql = '''pi()'''
+
+result = range_query(promql, start, end, step, timeout)
+pprint(result)
+```
+
+![](assets/2024-07-10-18-41-11.png)
+
+#### 其他接口
+
+还有更多接口可以玩！详见 [HTTP API | Prometheus](https://prometheus.io/docs/prometheus/latest/querying/api/)
+
+## 3 Examples
+
+!!! note
+    这一节会记录一些我用到 / 见到的查询样例。
