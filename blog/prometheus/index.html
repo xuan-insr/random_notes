@@ -1,0 +1,1931 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://xuan-insr.github.io/blog/prometheus/">
+      
+      
+        <link rel="prev" href="../2024-06-30-sun/">
+      
+      
+        <link rel="next" href="../2024-07-07-sun/">
+      
+      
+      <link rel="icon" href="../../logo.ico">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
+    
+    
+      
+        <title>Prometheus - 咸鱼暄的代码空间</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6543a935.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+SC:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Noto Serif SC";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/timeago.css">
+    
+      <link rel="stylesheet" href="../../from_oi_wiki/css/extra.css?v=13">
+    
+      <link rel="stylesheet" href="../../css/status.css">
+    
+      <link rel="stylesheet" href="../../css/neoteroi-mkdocs.css">
+    
+      <link rel="stylesheet" href="../../termynal.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-JT9BRCXKJJ"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-JT9BRCXKJJ",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-JT9BRCXKJJ",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="cyan" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#prometheus" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="咸鱼暄的代码空间" class="md-header__button md-logo" aria-label="咸鱼暄的代码空间" data-md-component="logo">
+      
+  <img src="../../logo.ico" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            咸鱼暄的代码空间
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Prometheus
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="cyan" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="orange"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/xuan-insr/xuan-insr.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    xuan-insr/咸鱼暄的代码空间
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://xuan-insr.github.io/" class="md-tabs__link">
+        
+  
+    
+  
+  🏡 主页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+    
+  
+  随机笔记
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="咸鱼暄的代码空间" class="md-nav__button md-logo" aria-label="咸鱼暄的代码空间" data-md-component="logo">
+      
+  <img src="../../logo.ico" alt="logo">
+
+    </a>
+    咸鱼暄的代码空间
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/xuan-insr/xuan-insr.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    xuan-insr/咸鱼暄的代码空间
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://xuan-insr.github.io/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    🏡 主页
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    随机笔记
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            随机笔记
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    归档
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            归档
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive/2024/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2024-07
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    分类
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            分类
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../category/booksgit/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    📚Git
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../category/booksmkdocs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    📚MkDocs
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../category/newspaperobservability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    📰Observability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../category/newspaperprometheus/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    📰Prometheus
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../category/rainbowdaily/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    🌈Daily
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../category/rainbowtopics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    🌈Topics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../category/sparkleszsh/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ✨ZSH
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../category/writing_hand_tone1git/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ✍🏻Git
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-concepts--基本概念" class="md-nav__link">
+    <span class="md-ellipsis">
+      1 Concepts | 基本概念
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1 Concepts | 基本概念">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-data-model--数据模型" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Data Model | 数据模型
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-prometheus-如何采集指标" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Prometheus 如何采集指标
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-metric-types--指标类型" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 Metric Types | 指标类型
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-querying--查询" class="md-nav__link">
+    <span class="md-ellipsis">
+      2 Querying | 查询
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2 Querying | 查询">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-data-types--数据类型" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Data Types | 数据类型
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-time-series-selectors--时间序列选择器" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Time Series Selectors | 时间序列选择器
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-operators--运算符" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Operators | 运算符
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.3 Operators | 运算符">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#231-算术二元运算符" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3.1 算术二元运算符
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#232-比较二元运算符" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3.2 比较二元运算符
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#233-逻辑集合二元运算符" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3.3 逻辑（集合）二元运算符
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#234-vector-matching" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3.4 Vector Matching
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#235-聚合运算符" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3.5 聚合运算符
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-functions--函数" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 Functions | 函数
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.4 Functions | 函数">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#数学运算" class="md-nav__link">
+    <span class="md-ellipsis">
+      数学运算
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#时间" class="md-nav__link">
+    <span class="md-ellipsis">
+      时间
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#判断是否为空" class="md-nav__link">
+    <span class="md-ellipsis">
+      判断是否为空
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#限制样本值" class="md-nav__link">
+    <span class="md-ellipsis">
+      限制样本值
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#变化情况" class="md-nav__link">
+    <span class="md-ellipsis">
+      变化情况
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#标签操作" class="md-nav__link">
+    <span class="md-ellipsis">
+      标签操作
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#类型转换" class="md-nav__link">
+    <span class="md-ellipsis">
+      类型转换
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#排序" class="md-nav__link">
+    <span class="md-ellipsis">
+      排序
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#用于-rv-的聚合" class="md-nav__link">
+    <span class="md-ellipsis">
+      用于 RV 的聚合
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#直方图相关函数" class="md-nav__link">
+    <span class="md-ellipsis">
+      直方图相关函数
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-subqueries--子查询" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.5 Subqueries | 子查询
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.6 API
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.6 API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#261-即时查询" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.6.1 即时查询
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#262-范围查询" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.6.2 范围查询
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#其他接口" class="md-nav__link">
+    <span class="md-ellipsis">
+      其他接口
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      3 Examples
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+  <div class="md-content md-content--post" data-md-component="content">
+    <div class="md-sidebar md-sidebar--post" data-md-component="sidebar" data-md-type="navigation">
+      <div class="md-sidebar__scrollwrap">
+        <div class="md-sidebar__inner md-post">
+          <nav class="md-nav md-nav--primary">
+            <div class="md-post__back">
+              <div class="md-nav__title md-nav__container">
+                <a href="../" class="md-nav__link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+                  <span class="md-ellipsis">
+                    回到主页
+                  </span>
+                </a>
+              </div>
+            </div>
+            
+            <ul class="md-post__meta md-nav__list">
+              <li class="md-nav__item md-nav__item--section">
+                <div class="md-post__title">
+                  <span class="md-ellipsis">
+                    元数据
+                  </span>
+                </div>
+                <nav class="md-nav">
+                  <ul class="md-nav__list">
+                    <li class="md-nav__item">
+                      <div class="md-nav__link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5v-5Z"/></svg>
+                        <time datetime="2024-07-07 00:00:00" class="md-ellipsis">2024年7月7日</time>
+                      </div>
+                    </li>
+                    
+                    
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3H9m3 2 4 13 3-1-4-13-3 1M5 5v13h3V5H5M3 19v2h18v-2H3Z"/></svg>
+                          <span class="md-ellipsis">
+                            分类于
+                            
+                              <a href="../category/rainbowtopics/">🌈Topics</a>, 
+                              <a href="../category/newspaperobservability/">📰Observability</a>, 
+                              <a href="../category/newspaperprometheus/">📰Prometheus</a></span>
+                        </div>
+                      </li>
+                    
+                    
+                      
+                      <li class="md-nav__item">
+                        <div class="md-nav__link">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8 8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10 10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67-.75 1.23L11 13V7h1.5Z"/></svg>
+                          <span class="md-ellipsis">
+                            
+                              需要 22 分钟阅读时间
+                            
+                          </span>
+                        </div>
+                      </li>
+                    
+                  </ul>
+                </nav>
+              </li>
+            </ul>
+          </nav>
+          
+        </div>
+      </div>
+    </div>
+    <article class="md-content__inner md-typeset">
+      
+        
+
+
+<h1 id="prometheus">Prometheus<a class="headerlink" href="#prometheus" title="Permanent link">&para;</a></h1>
+<p><a href="https://prometheus.io/">Prometheus</a> 采集系统指标 (metrics)，并将其存储为时间序列 (time series)；并提供了一套强大的查询语言 PromQL，用于查询和分析这些指标。通常，我们会使用 Grafana 来把这些指标可视化。</p>
+<p>本文主要介绍 Prometheus 的基本概念和查询方法。</p>
+<!-- more -->
+
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>如果暂时从未实际接触过 Prometheus，您可以在 <a href="https://grafana.com/blog/2019/12/04/how-to-explore-prometheus-with-easy-hello-world-projects/">这里</a> 找到一个 minimum 的 end-to-end 示例。</p>
+</div>
+<h2 id="1-concepts--基本概念">1 Concepts | 基本概念<a class="headerlink" href="#1-concepts--基本概念" title="Permanent link">&para;</a></h2>
+<h3 id="11-data-model--数据模型">1.1 Data Model | 数据模型<a class="headerlink" href="#11-data-model--数据模型" title="Permanent link">&para;</a></h3>
+<p>Prometheus 存储的内容是一系列 <code>(metric_name, labels, timestamp, value)</code>；其中：</p>
+<ul>
+<li><code>metric_name</code> 是指标名，用于表明指标的含义 (e.g. <code>http_requests_total</code>)；</li>
+<li><code>labels</code> 是可选的，包含一组任意键值对，用于区分指标的不同维度 (e.g. <code>method="GET"</code>)；<ul>
+<li>例如 <code>http_requests_total{method="GET", status="200"}</code> 表示 <code>GET</code> 请求返回 <code>200</code> 的总次数；</li>
+</ul>
+</li>
+<li><code>(timestamp, value)</code> 被合并称为 <code>sample</code>，表示在某个时间点下 <code>metric_name{labels}</code> 的值。<ul>
+<li><code>timestamp</code> 的精度是毫秒，<code>value</code> 是一个 float64 数值。</li>
+</ul>
+</li>
+</ul>
+<h3 id="12-prometheus-如何采集指标">1.2 Prometheus 如何采集指标<a class="headerlink" href="#12-prometheus-如何采集指标" title="Permanent link">&para;</a></h3>
+<p>常见语言都有 Prometheus 的 client library，用于在应用程序中采集指标并暴露出来。例如，服务可以在 <code>/metrics</code> 路径下暴露指标，指标可能形如：</p>
+<div class="highlight"><pre><span></span><code># HELP python_gc_objects_collected_total Objects collected during gc
+# TYPE python_gc_objects_collected_total counter
+python_gc_objects_collected_total{generation=&quot;0&quot;} 4.6086284e+07
+python_gc_objects_collected_total{generation=&quot;1&quot;} 2.1484146e+07
+python_gc_objects_collected_total{generation=&quot;2&quot;} 6.290886e+06
+# HELP python_gc_objects_uncollectable_total Uncollectable objects found during GC
+# TYPE python_gc_objects_uncollectable_total counter
+python_gc_objects_uncollectable_total{generation=&quot;0&quot;} 0.0
+python_gc_objects_uncollectable_total{generation=&quot;1&quot;} 0.0
+python_gc_objects_uncollectable_total{generation=&quot;2&quot;} 0.0
+<span class="hll"># HELP http_requests_total Total number of HTTP requests
+</span><span class="hll"># TYPE http_requests_total counter
+</span><span class="hll">http_requests_total{method=&quot;post&quot;,code=&quot;200&quot;} 1027.0
+</span><span class="hll">http_requests_total{method=&quot;post&quot;,code=&quot;400&quot;} 3.0
+</span><span class="hll">http_requests_total{method=&quot;get&quot;,code=&quot;200&quot;} 10000.0
+</span></code></pre></div>
+<p>在服务中，每次接受到 http 请求时，会根据请求的 method 和 code 修改一次 <code>http_requests_total</code> 指标。Prometheus 每隔指定的一段时间会去 <code>/metrics</code> 拉取这些指标，获得上面代码块所示的数据，从而获取到 <code>(metric_name, labels, timestamp, value)</code> 的 data model。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>在 Prometheus 看来，一个 <code>metric_name{labels}</code> 的值是一个时间序列，即一系列 <code>(timestamp, value)</code> 的集合。如果 <code>labels</code> 的取值发生变化，Prometheus 会认为这是一个新的时间序列。</p>
+</div>
+<p>另外，在每次抓取数据时，Prometheus 还会额外记录以下指标：</p>
+<ul>
+<li><code>up</code>，1 表示抓取成功，0 表示失败；这对于检查实例是否可用非常有用；</li>
+<li><code>scrape_duration_seconds</code>，抓取数据的耗时；</li>
+<li>还有更多，参见 <a href="https://prometheus.io/docs/concepts/jobs_instances/#automatically-generated-labels-and-time-series">Automatically generated labels and time series</a>。</li>
+</ul>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>有时，需要被监控的组件可能不支持被 Prometheus 直接抓取，此时可以在组件中 <a href="https://prometheus.io/docs/instrumenting/pushing/">主动 Push</a>；但这不会被包含在本文的内容中。。</p>
+</div>
+<h3 id="13-metric-types--指标类型">1.3 Metric Types | 指标类型<a class="headerlink" href="#13-metric-types--指标类型" title="Permanent link">&para;</a></h3>
+<p>Prometheus 的 client library 支持以下 4 种指标类型；但这只是一个便于使用的封装，在 Prometheus 中的指标仍然只有 <code>(metric_name, labels, timestamp, value)</code></p>
+<ul>
+<li><code>Counter</code>：只增不减的计数器。在 client 中，支持 <code>c.inc()</code> 或 <code>c.inc(1.6)</code> 的操作来增加其值。</li>
+<li><code>Gauge</code>：可增可减的值。在 client 中，支持 <code>g.set(3.2)</code>, <code>g.inc()</code> 或 <code>g.dec(10)</code> 的操作来修改其值。</li>
+<li><code>Histogram</code>：对观察的结果进行采样，记录到预先指定好的若干范围 (bucket) 中，用于统计数据的分布情况。在 client 中，支持 <code>h.observe(3.2)</code> 的操作来记录数据。参见下面的例子。</li>
+<li><code>Summary</code>：对观察的结果进行采样，记录到预先指定好的若干分位数 (quantile) 中，用于统计数据的分布情况。在 client 中，支持 <code>s.observe(3.2)</code> 的操作来记录数据。参见下面的例子。</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>请注意：并非所有的 client library 都支持所有的指标类型。例如，<a href="https://github.com/prometheus/client_python/issues/888">截至目前</a> Python 的 client library <code>prometheus_client</code> 不支持 <code>Summary</code> 的 quantile 配置。</p>
+</div>
+<details class="example">
+<summary>Histogram</summary>
+<p><code>Histogram</code> 会将观察到的数据分桶 (bucket)，然后记录每个分桶的数据量。在创建一个 <code>Histogram</code> 指标时，需要指定各个 bucket 的上限值；<code>Histogram</code> 实际上会创建一系列不同的 metric 来记录观察得到的数据。下面是一个例子。</p>
+<p>举例而言，我们使用名为 <code>http_request_duration_seconds</code> 的 histogram 指标来记录请求的响应时间；它包含 <code>api</code> 和 <code>method</code> 两个 label；我们定义了如下的几个 bucket: <code>(0.1, 0.5, 1.0, Inf)</code>。那么，假如有 <code class="highlight"><span class="n">http_request_duration_seconds</span><span class="p">(</span><span class="n">api</span><span class="o">=</span><span class="s2">&quot;/foo&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;GET&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span></code>，那么 client 会记录如下的数据：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span>
+<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code>http_request_duration_seconds_bucket{le=&quot;0.1&quot;,api=&quot;/foo&quot;,method=&quot;GET&quot;} 0
+http_request_duration_seconds_bucket{le=&quot;0.5&quot;,api=&quot;/foo&quot;,method=&quot;GET&quot;} 0
+http_request_duration_seconds_bucket{le=&quot;1.0&quot;,api=&quot;/foo&quot;,method=&quot;GET&quot;} 1
+http_request_duration_seconds_bucket{le=&quot;+Inf&quot;,api=&quot;/foo&quot;,method=&quot;GET&quot;} 1
+
+http_request_duration_seconds_sum{api=&quot;/foo&quot;,method=&quot;GET&quot;} 0.8
+
+http_request_duration_seconds_count{api=&quot;/foo&quot;,method=&quot;GET&quot;} 1
+</code></pre></div></td></tr></table></div>
+<p>1-4 行的几个 <code>&lt;metricName&gt;_bucket</code> 中记录了落到各个 bucket 的数据量；<code>le</code> (less than or equal to) 表示不大于该值的 observe 次数。第 6 行的 <code>&lt;metricName&gt;_sum</code> 记录了所有 observe 的数据和，第 8 行的 <code>&lt;metricName&gt;_count</code> 记录了 observe 的总量。</p>
+<p>在此基础上，如果有 <code class="highlight"><span class="n">http_request_duration_seconds</span><span class="p">(</span><span class="n">api</span><span class="o">=</span><span class="s2">&quot;/foo&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;GET&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="mf">0.4</span><span class="p">)</span></code>，那么数据会变为：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span>
+<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code>http_request_duration_seconds_bucket{le=&quot;0.1&quot;,api=&quot;/foo&quot;,method=&quot;GET&quot;} 0
+http_request_duration_seconds_bucket{le=&quot;0.5&quot;,api=&quot;/foo&quot;,method=&quot;GET&quot;} 1
+http_request_duration_seconds_bucket{le=&quot;1.0&quot;,api=&quot;/foo&quot;,method=&quot;GET&quot;} 2
+http_request_duration_seconds_bucket{le=&quot;+Inf&quot;,api=&quot;/foo&quot;,method=&quot;GET&quot;} 2
+
+http_request_duration_seconds_sum{api=&quot;/foo&quot;,method=&quot;GET&quot;} 1.2
+
+http_request_duration_seconds_count{api=&quot;/foo&quot;,method=&quot;GET&quot;} 2
+</code></pre></div></td></tr></table></div>
+<p>如果还有 <code class="highlight"><span class="n">http_request_duration_seconds</span><span class="p">(</span><span class="n">api</span><span class="o">=</span><span class="s2">&quot;/bar&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;GET&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="mf">1.2</span><span class="p">)</span></code>，那么会新增与上述类似的 6 个 time series。</p>
+</details>
+<details class="example">
+<summary>Summary</summary>
+<p>与 <code>Histogram</code> 类似，<code>Summary</code> 也会创建一系列不同的 metric 来记录观察得到的数据；但它会记录不同的分位数 (quantile) 而非预先定义的 bucket。例如：</p>
+<div class="highlight"><pre><span></span><code>http_request_duration_seconds{quantile=&quot;0.5&quot;} 0.232227334
+http_request_duration_seconds{quantile=&quot;0.90&quot;} 0.821139321
+http_request_duration_seconds{quantile=&quot;0.95&quot;} 1.528948804
+http_request_duration_seconds{quantile=&quot;0.99&quot;} 2.829188272
+http_request_duration_seconds{quantile=&quot;1&quot;} 34.283829292
+
+http_request_duration_seconds_sum 8953.332
+http_request_duration_seconds_count 27892
+</code></pre></div>
+<p>由于 <code>Summary</code> 需要使用流式算法来计算分位数，因此它的计算量会比 <code>Histogram</code> 大得多。</p>
+</details>
+<p>关于如何选择 <code>Histogram</code> 和 <code>Summary</code>，请参考 <a href="https://prometheus.io/docs/practices/histograms/">Histograms and Summaries | Prometheus</a>。</p>
+<h2 id="2-querying--查询">2 Querying | 查询<a class="headerlink" href="#2-querying--查询" title="Permanent link">&para;</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Thanos</p>
+<p>本文主要介绍 Prometheus；但在实际使用中，可能会使用 <a href="https://thanos.io/">Thanos</a> 来扩展 Prometheus 的功能。Thanos 提供了一些额外的功能，例如长期存储、查询优化、数据压缩等。</p>
+<p>例如，每个集群的 Prometheus 负责收集所在集群各服务的 metrics 并提供一定的查询能力；而 Thanos 以 sidecar 的形式整合各个集群的 Prometheus 采集的指标并长期保存，<strong>并同样适用 PromQL 查询</strong>。</p>
+</div>
+<h3 id="21-data-types--数据类型">2.1 Data Types | 数据类型<a class="headerlink" href="#21-data-types--数据类型" title="Permanent link">&para;</a></h3>
+<p>在 PromQL 中，大多数表达式归属于以下 3 种类型之一：</p>
+<ul>
+<li>Scalar：单个浮点数数值；</li>
+<li>Instant vector：一组时间序列，每个时间序列包含它在查询时间点前最后一次被采样到的值。例如 Query <code>http_requests_total</code> 或者 <code>http_requests_total{method="GET"}</code> 返回在 query timestamp 这个时间点之前每个时间序列最后一次被采样到的值；<ul>
+<li>请注意：即使 <code>http_requests_total{method="GET"}</code> 得到的 instant vector 只包含 1 个元素，它也不能被视为 scalar。</li>
+</ul>
+</li>
+<li>Range vector：一组时间序列，每个时间序列包含它在查询时间段内每个时间点的值，例如 <code>http_requests_total[5m]</code> 返回在 5 分钟内每个时间序列的值。</li>
+</ul>
+<p>如果我们用 Python 做类比的话，上面的三个类型可以以如下方式表示：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="hll"><span class="nb">type</span> <span class="n">Scalar</span> <span class="o">=</span> <span class="nb">float</span>
+</span>
+<span class="nb">type</span> <span class="n">Labels</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+<span class="nb">type</span> <span class="n">Sample</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Timestamp</span><span class="p">,</span> <span class="n">Scalar</span><span class="p">]</span>
+
+<span class="nb">type</span> <span class="n">LabeledSample</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Labels</span><span class="p">,</span> <span class="n">Sample</span><span class="p">]</span>
+<span class="hll"><span class="nb">type</span> <span class="n">InstantVector</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="n">LabeledSample</span><span class="p">]</span>
+</span>
+<span class="nb">type</span> <span class="n">TimeStamp</span> <span class="o">=</span> <span class="nb">int</span>
+<span class="nb">type</span> <span class="n">TimeSeries</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="n">Sample</span><span class="p">]</span>
+<span class="nb">type</span> <span class="n">LabeledTimeSeries</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Labels</span><span class="p">,</span> <span class="n">TimeSeries</span><span class="p">]</span>
+<span class="hll"><span class="nb">type</span> <span class="n">RangeVector</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="n">LabeledTimeSeries</span><span class="p">]</span>
+</span></code></pre></div></td></tr></table></div>
+<h3 id="22-time-series-selectors--时间序列选择器">2.2 Time Series Selectors | 时间序列选择器<a class="headerlink" href="#22-time-series-selectors--时间序列选择器" title="Permanent link">&para;</a></h3>
+<p>以下表达式具有类型 <code>InstantVector</code>：</p>
+<ul>
+<li><code>http_requests_total</code></li>
+<li><code>http_requests_total{method="GET"}</code><ul>
+<li>对于没有被 matchers 提及的 label，则任何值全部接受。</li>
+<li>对于同一个 label，可以有多个 matchers，它们之间是 AND 关系。</li>
+</ul>
+</li>
+<li><code>{__name__="http_requests_total", method="GET"}</code><ul>
+<li><code>__name__</code> 是一个特殊的 label，用于匹配指标名。</li>
+<li>由此可见，<strong>selector 中不必包含 metric_name</strong>。</li>
+<li>因此，该表达式和前一个例子等价。</li>
+</ul>
+</li>
+<li><code>http_requests_total{api=~"v1.*", code!~"20[0-9]", method!="POST"}</code><ul>
+<li><code>=</code> 表示精确匹配，<code>=~</code> 表示正则匹配，<code>!=</code> 和 <code>!~</code> 表示不匹配，分别适用于字符串和正则表达式。</li>
+<li>正则表达式是 fully anchored 的，即 <code>api=~"v1.*"</code> 等价于 <code>api=~"^v1.*$"</code>。</li>
+</ul>
+</li>
+<li><code>http_requests_total offset 5m</code> / <code>http_requests_total{method="GET"} offset 5m</code><ul>
+<li><code>offset</code> 用于指定时间偏移量，例如 <code>offset 5m</code> 表示向前偏移 5 分钟。</li>
+</ul>
+</li>
+<li><code>http_requests_total @ 1609746000</code> / <code>http_requests_total{method="GET"} @ 1609746000</code><ul>
+<li><code>@</code> 用于指定时间戳，例如 <code>@ 1609746000</code> 表示在时间戳 1609746000 的时候的值。</li>
+</ul>
+</li>
+</ul>
+<div class="admonition info">
+<p class="admonition-title">哪些 time series 会被包含在查询结果中？</p>
+<p>Prometheus 配置了一个 <a href="https://prometheus.io/docs/prometheus/latest/querying/basics/#staleness">staleness</a> 时长，默认值是 5 分钟。</p>
+<p>在使用 Instant Vector Selector 时，在查询时间点前 staleness 时长的范围内出现过数据的所有 time series 会被包含在结果的 <code>InstantVector</code> 中；其值是该范围内最后一次采样到的值。</p>
+</div>
+<p>以下表达式具有类型 <code>RangeVector</code>：</p>
+<ul>
+<li><code>http_requests_total[5m]</code></li>
+<li><code>http_requests_total{method="GET"}[5m]</code></li>
+<li><code>http_requests_total{method="GET"}[5m] offset 5m</code></li>
+<li><code>http_requests_total{method="GET"}[5m] @ 1609746000</code></li>
+</ul>
+<div class="admonition info">
+<p class="admonition-title">哪些 time series 会被包含在查询结果中？</p>
+<p>对于 Range Vector Selector，Prometheus 会返回在查询时间内出现过数据的所有 time series；其值是在查询时间范围内每个时间点的值。</p>
+</div>
+<h3 id="23-operators--运算符">2.3 Operators | 运算符<a class="headerlink" href="#23-operators--运算符" title="Permanent link">&para;</a></h3>
+<h4 id="231-算术二元运算符">2.3.1 算术二元运算符<a class="headerlink" href="#231-算术二元运算符" title="Permanent link">&para;</a></h4>
+<p>包括 <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code> (取模), <code>^</code> (幂)。其行为是：</p>
+<ul>
+<li><code>Scalar &lt;op&gt; Scalar</code>：和正常算术一致；</li>
+<li><code>InstantVector &lt;op&gt; Scalar</code>：返回对 InstantVector 中的每个元素应用 <code>&lt;op&gt;</code> 的结果；<strong>metric_name (<code>__name__</code>) 被删除</strong>；</li>
+<li><code>InstantVector1 &lt;op&gt; InstantVector2</code>：对于 InstantVector1 中的每个元素，在 InstantVector2 中找到标签完全相同的元素，将其应用 <code>&lt;op&gt;</code> 的结果返回，<strong>metric_name (<code>__name__</code>) 被删除</strong>；如果没找到，则结果中不包含该 label；</li>
+<li>不接受 RangeVector。</li>
+</ul>
+<h4 id="232-比较二元运算符">2.3.2 比较二元运算符<a class="headerlink" href="#232-比较二元运算符" title="Permanent link">&para;</a></h4>
+<p>包括 <code>==</code>, <code>!=</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code>。其行为是：</p>
+<ul>
+<li><code>bool(Scalar &lt;op&gt; Scalar)</code>：返回 0 或者 1；</li>
+<li><code>InstantVector &lt;op&gt; Scalar</code>：返回结果中比较结果为真的元素保留，其余删除；</li>
+<li><code>bool(InstantVector &lt;op&gt; Scalar)</code>：返回结果中将比较结果为真的元素置为 1，其余置为 0；<strong>metric_name (<code>__name__</code>) 被删除</strong>；</li>
+<li><code>InstantVector1 &lt;op&gt; InstantVector2</code>：InstantVector2 作为过滤器：InstantVector1 在其中找不到标签完全相同的元素，或者对应元素比较结果为假的，将其删除；</li>
+<li><code>bool(InstantVector1 &lt;op&gt; InstantVector2)</code>：类似前一条：保留的元素置为 1，其余置为 0；<strong>metric_name (<code>__name__</code>) 被删除</strong>；</li>
+<li>不接受 RangeVector。</li>
+</ul>
+<h4 id="233-逻辑集合二元运算符">2.3.3 逻辑（集合）二元运算符<a class="headerlink" href="#233-逻辑集合二元运算符" title="Permanent link">&para;</a></h4>
+<p>包括 <code>and</code>, <code>or</code>, <code>unless</code>，只在 <code>InstantVector</code> 之间定义。其行为是：</p>
+<ul>
+<li><code>iv1 and iv2</code> (intersection)：返回 iv1 中的那些在 iv2 中具有完全相同标签的元素；</li>
+<li><code>iv1 or iv2</code> (union)：返回 iv1 的所有元素，以及 iv2 中那些在 iv1 中没有完全相同标签集的元素；</li>
+<li><code>iv1 unless iv2</code> (complement)：返回 iv1 中的那些在 iv2 中没有完全相同标签的元素。</li>
+</ul>
+<h4 id="234-vector-matching">2.3.4 Vector Matching<a class="headerlink" href="#234-vector-matching" title="Permanent link">&para;</a></h4>
+<p>上面三节中描述的 <code>InstantVector</code> 之间的操作，都试图从右边的 <code>InstantVector</code> 中为左边的 <code>InstantVector</code> 中的每个元素找到标签匹配的元素。这个「匹配」过程也是可以控制的：</p>
+<ul>
+<li><code>iv1 &lt;bin-op&gt; on(&lt;label-list&gt;) iv2</code> 将纳入考虑的标签限制在 <code>&lt;label-list&gt;</code> 中，其他标签全部忽略；</li>
+<li><code>iv1 &lt;bin-op&gt; ignoring(&lt;label-list&gt;) iv2</code> 将忽略 <code>&lt;label-list&gt;</code> 中的标签，其他标签全部纳入考虑。</li>
+</ul>
+<p>下图展示了一个例子：</p>
+<p><img alt="" src="../topics/assets/2024-07-09-19-48-45.png" /></p>
+<p>另外在算术和比较运算符中，还可以通过 <code>group_left</code> 和 <code>group_right</code> 实现一对多和多对一的匹配。本文暂且略去，参见 <a href="https://prometheus.io/docs/prometheus/latest/querying/operators/#many-to-one-and-one-to-many-vector-matches">文档</a>。</p>
+<h4 id="235-聚合运算符">2.3.5 聚合运算符<a class="headerlink" href="#235-聚合运算符" title="Permanent link">&para;</a></h4>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>除了 <code>topk</code> 和 <code>bottomk</code> 以外，所有聚合运算符都会在结果中删除 metrics name (<code>__name__</code>)，因为所得的值经过了处理，而原来 metrics name 不再有意义。</p>
+</div>
+<p>聚合运算符将 InstantVector 按照标签聚合为元素更少的 InstantVector。例如：</p>
+<ul>
+<li><code>sum(http_requests_total)</code>：返回一个单元素的 InstantVector，标签为 <code>{}</code>，值为所有 <code>http_requests_total</code> 的和；</li>
+<li><code>sum(http_requests_total{method="GET"})</code>：返回一个单元素的 InstantVector，标签为 <code>{}</code>，值为所有 <code>http_requests_total{method="GET"}</code> 的和；</li>
+<li><code>sum(http_requests_total) by (method)</code>：返回一个 InstantVector；对于 <code>http_requests_total</code> 中的每个不同的 <code>method</code>，返回一个元素，标签只有 <code>method</code>，值为所有对应 method 的 <code>http_requests_total</code> 的和；</li>
+<li><code>sum(http_requests_total) by (method, code)</code>：类似，对于 <code>(method, code)</code> 的每种存在的组合，返回一个元素。</li>
+<li><code>sum(http_requests_total) without (method)</code>：与 <code>by</code> 相反：对于除了 <code>method</code> 以外的所有标签的每种存在组合，返回一个元素。<ul>
+<li>例如，标签只有 <code>method, code, api</code> 的话，那么 <code>by (method)</code> 和 <code>without (code, api)</code> 等价。</li>
+</ul>
+</li>
+</ul>
+<p>以上的 <code>without</code> 和 <code>by</code> 不能共用；另外 <code>sum(v) by (&lt;labels&gt;)</code> 和 <code>sum by (&lt;labels&gt;) (v)</code> 是等价的。</p>
+<p>即：我们通过 <code>by</code> 或者 <code>without</code> 将 InstantVector 按照标签 <strong>分组</strong>，然后完成聚合操作；如果没有指定分组，则认为所有标签属于一组。这样的聚合运算符包括：</p>
+<ul>
+<li><code>sum</code>: 每组中所有元素的和；</li>
+<li><code>max</code>, <code>min</code>, <code>avg</code>, <code>stddev</code>, <code>stdvar</code>: 分别是最大值、最小值、平均值、标准差、方差；</li>
+<li><code>group</code>: 结果中的值全部为 1；</li>
+<li><code>count</code>: 每组中元素的个数。</li>
+</ul>
+<p>另外，还有一些聚合函数含有参数，其使用方法形如 <code>count_values("api", http_requests_total) by (code)</code>，表示对于每个 <code>code</code>，统计 label <code>api</code> 的不同值的个数。这样的聚合运算符包括：</p>
+<ul>
+<li><code>count_values(label, v)</code>: 对于每个组，统计 label 的不同值的个数；</li>
+<li><code>quantile(φ, v)</code>: 对于每个组，计算其中所有值中 φ 分位的值。</li>
+</ul>
+<p>与上述不同的两个聚合运算符是 <code>topk</code> 和 <code>bottomk</code>，它们保留每组中的前 k 个或后 k 个元素。</p>
+<h3 id="24-functions--函数">2.4 Functions | 函数<a class="headerlink" href="#24-functions--函数" title="Permanent link">&para;</a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>请注意：几乎所有的函数 (除了 <code>sort</code>, <code>sort_desc</code>, <code>label_replace</code>) 都会在结果中删除 metrics name (<code>__name__</code>)，因为所得的值经过了处理，而原来 metrics name 不再有意义。</p>
+</div>
+<p>下面，我们使用 <code>IV</code> 和 <code>RV</code> 分别替代 <code>InstantVector</code> 和 <code>RangeVector</code>。</p>
+<h4 id="数学运算">数学运算<a class="headerlink" href="#数学运算" title="Permanent link">&para;</a></h4>
+<ul>
+<li>【绝对值】<code>abs(v: IV) -&gt; IV</code>: 结果中每个元素的值是原来元素的绝对值。</li>
+<li>【符号函数】<code>sgn(v: IV) -&gt; IV</code>: 结果中每个元素的值是原来元素的正负性，即 1、0、-1。</li>
+<li>【向上取整】<code>ceil(v: IV) -&gt; IV</code>: 结果中每个元素的值是原来元素的向上取整。</li>
+<li>【向下取整】<code>floor(v: IV) -&gt; IV</code>: 结果中每个元素的值是原来元素的向下取整。</li>
+<li>【四舍五入】<code>round(v: IV, to_nearest: Scalar = 1) -&gt; IV</code>: 结果中每个元素的值是原来元素的四舍五入值，取到最接近的 <code>to_nearest</code> 的倍数；<code>to_nearest</code> 可以是分数。</li>
+<li>【指数】<code>exp(v: IV) -&gt; IV</code>: 结果中每个元素的值是原来元素的指数 <span class="arithmatex">\(e^x\)</span>。</li>
+<li>【自然对数】<code>ln(v: IV) -&gt; IV</code>: 结果中每个元素的值是原来元素的自然对数 <span class="arithmatex">\(\ln(x)\)</span>。</li>
+<li>【对数】<code>log2(v: IV) -&gt; IV</code>, <code>log10(v: IV) -&gt; IV</code>: 结果中每个元素的值是原来元素的对数。</li>
+<li>【平方根】<code>sqrt(v: IV) -&gt; IV</code>: 结果中每个元素的值是原来元素的平方根。</li>
+<li>【三角函数】另外还有这些三角函数，和上述类似：<code>sin</code>, <code>cos</code>, <code>tan</code>, <code>asin</code>, <code>acos</code>, <code>atan</code>, <code>sinh</code>, <code>cosh</code>, <code>tanh</code>, <code>asinh</code>, <code>acosh</code>, <code>atanh</code>。</li>
+<li>【角度和弧度】<code>deg(v: IV) -&gt; IV</code>, <code>rad(v: IV) -&gt; IV</code>: 将角度和弧度相互转换。</li>
+<li>【<span class="arithmatex">\(\pi\)</span>】<code>pi() -&gt; Scalar</code> 返回 <span class="arithmatex">\(\pi\)</span>。</li>
+</ul>
+<h4 id="时间">时间<a class="headerlink" href="#时间" title="Permanent link">&para;</a></h4>
+<ul>
+<li>【求值时的时间】<code>time() -&gt; Scalar</code>: 返回计算表达式时的时间戳，即自 UTC 1970 年 1 月 1 日以来的秒数。</li>
+<li>【时间戳】<code>timestamp(v: IV) -&gt; IV</code>: 返回 v 中每个时间序列的时间戳。</li>
+<li><code>day_of_month(v: IV = vector(time())) -&gt; IV</code>: 返回 v 中每个时间序列的时间戳在所在月的第几天。<ul>
+<li>类似地，还有 <code>day_of_week</code>, <code>day_of_year</code></li>
+</ul>
+</li>
+<li><code>hour(v: IV = vector(time())) -&gt; IV</code>: 返回 v 中每个时间序列的时间戳的在所在天中的小时 (0-23)。<ul>
+<li>类似地，还有 <code>minute</code>, <code>year</code>, <code>month</code></li>
+</ul>
+</li>
+<li><code>days_in_month(v: IV = vector(time())) -&gt; IV</code>: 返回 v 中每个时间序列的时间戳对应的月份中有几天。</li>
+</ul>
+<h4 id="判断是否为空">判断是否为空<a class="headerlink" href="#判断是否为空" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>absent(v: IV) -&gt; IV</code>: 如果 v 有任何元素，则返回一个空 vector；否则返回一个值为 1 的单元素 vector，label 为 v 中各元素 label 的共同部分。<ul>
+<li>用例：查询是否有 500 错误：<code>absent(http_requests_total{code="500"})</code></li>
+</ul>
+</li>
+<li><code>absent_over_time(v: RV) -&gt; IV</code>: 如果 v 在时间范围内有任何元素，则返回一个空 vector；否则返回一个值为 1 的单元素 vector，label 为 v 中各元素 label 的共同部分<ul>
+<li>用例：查询最近 5 分钟是否有 500 错误：<code>absent_over_time(http_requests_total{code="500"}[5m])</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="限制样本值">限制样本值<a class="headerlink" href="#限制样本值" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>clamp(v: IV, min: Scalar, max: Scalar) -&gt; IV</code>: 结果中每个元素的值如果小于 min，则取 min；如果大于 max，则取 max；否则保持不变。<ul>
+<li>特别地：如果 min &gt; max，则返回一个空 vector；如果 min 或 max 是 NaN，则结果为 NaN。</li>
+</ul>
+</li>
+<li><code>clamp_max(v: IV, max: Scalar) -&gt; IV</code>, <code>clamp_min(v: IV, min: Scalar) -&gt; IV</code>: 与前一条类似。</li>
+</ul>
+<h4 id="变化情况">变化情况<a class="headerlink" href="#变化情况" title="Permanent link">&para;</a></h4>
+<ul>
+<li>【变化次数】<code>changes(v: RV) -&gt; IV</code>: 返回 v 中每个时间序列的变化次数。<ul>
+<li>用例：查询最近 5 分钟 500 错误的变化次数：<code>changes(http_requests_total{code="500"}[5m])</code></li>
+</ul>
+</li>
+<li>【差值】<code>delta(v: RV) -&gt; IV</code>: 返回 v 中每个时间序列的最后两个样本值的差值。<ul>
+<li>用例：查询最近 5 分钟 500 错误的差值：<code>delta(http_requests_total{code="500"}[5m])</code></li>
+<li>结果可能是非整数，因为必要时会进行插值。</li>
+</ul>
+</li>
+<li>【增量】<code>increase(v: RV) -&gt; IV</code>: 返回 v 中每个时间序列的增量。这只应被用于 Counter 类型的指标 (但并不会检查)。<ul>
+<li>它和 <code>delta</code> 的区别在于：如果时间范围内指标因为重启或者其他原因而破坏了单调性，<code>increase</code> 会加以补偿，例如 <code>0 -&gt; 10 -&gt; 2 -&gt; 15</code> 会被补偿为 <code>0 -&gt; 10 -&gt; 12 -&gt; 25</code>。</li>
+<li>用例：查询最近 5 分钟 500 错误的增量：<code>increase(http_requests_total{code="500"}[5m])</code></li>
+</ul>
+</li>
+<li>【瞬时差值】<code>idelta(v: RV) -&gt; IV</code>: 返回 v 中每个时间序列的最后两个样本值的差值。这只应被用于 Gauge 类型的指标 (但并不会检查)。</li>
+<li>【导数】<code>deriv(v: RV) -&gt; IV</code>: 返回 v 中每个时间序列用 <a href="https://en.wikipedia.org/wiki/Simple_linear_regression">简单线性回归</a> 计算出导数。这只应被用于 Gauge 类型的指标 (但并不会检查)。<ul>
+<li>用例：查询最近 5 分钟 500 错误的变化率：<code>deriv(http_requests_total{code="500"}[5m])</code></li>
+</ul>
+</li>
+<li>【Smoothing】<code>holt_winters(v: RV, sf: Scalar, tf: Scalar) -&gt; IV</code>: 使用 Holt-Winters 指数平滑算法对 v 进行平滑处理。sf 和 tf 分别是平滑因子和时间因子。</li>
+<li>【增长率】<code>rate(v: RV) -&gt; IV</code>: 返回 v 中每个时间序列的增长率。这只应被用于 Counter 类型的指标。如果时间范围内指标因为重启或者其他原因而破坏了单调性，会加以补偿。<ul>
+<li>用例：查询最近 5 分钟 500 错误的增长率：<code>rate(http_requests_total{code="500"}[5m])</code></li>
+</ul>
+</li>
+<li>【瞬时增长率】<code>irate(v: RV) -&gt; IV</code>: 返回 v 中每个时间序列基于最后两个样本值计算出的瞬时增长率。这只应被用于绘制不稳定的、快速增长的 counters。如果时间范围内指标因为重启或者其他原因而破坏了单调性，会加以补偿。</li>
+<li>【线性预测】<code>predict_linear(v: RV, t: Scalar) -&gt; IV</code>: 基于 <a href="https://en.wikipedia.org/wiki/Simple_linear_regression">简单线性回归</a>，预测 v 中每个时间序列在 t 秒后的值。</li>
+<li>【重置次数】<code>resets(v: RV) -&gt; IV</code>: 返回 v 中每个时间序列的重置次数（两次连续采样中的任何减少都被认为是重置）。这只应被用于 Counter 类型的指标。</li>
+</ul>
+<h4 id="标签操作">标签操作<a class="headerlink" href="#标签操作" title="Permanent link">&para;</a></h4>
+<ul>
+<li>【标签替换】<code>label_replace(v: IV, dst_label: String, replacement: String, src_label: String, regex: String) -&gt; IV</code>: 对于 v 中的每个 time series，如果其标签 <code>src_label</code> 的值匹配 <code>regex</code>，则将其替换为 <code>replacement</code>，放到 <code>dst_label</code> 中；如果不匹配，则保持不变。<code>replacement</code> 中可以使用 <code>$1</code>, <code>$2</code>, ... 来引用 <code>regex</code> 中的分组。<ul>
+<li>例如，<code>label_replace(http_requests_total{method="GET"}, "new_label", "$1", "api", "(.*)/.*")</code> 会将 <code>http_requests_total{api="a/b"}</code> 转换为 <code>http_requests_total{new_label="a"}</code>。</li>
+</ul>
+</li>
+<li>【标签连接】<code>label_join(v: IV, dst_label: String, separator: String, src_label_1: String, src_label_2: String, ...) -&gt; IV</code>: 将 v 中的标签 src_label_1, src_label_2, ... 的值连接起来，用 separator 分隔，放到 dst_label 中。<ul>
+<li>例如，<code>label_join(http_requests_total{method="GET"}, "new_label", "-", "method", "code")</code> 会将 <code>http_requests_total{method="GET", code="200"}</code> 转换为 <code>http_requests_total{new_label="GET-200"}</code>。</li>
+</ul>
+</li>
+</ul>
+<h4 id="类型转换">类型转换<a class="headerlink" href="#类型转换" title="Permanent link">&para;</a></h4>
+<ul>
+<li>【类型转换】<code>scalar(v: IV) -&gt; Scalar</code>: 如果 v 恰有 1 个时间序列，返回其值；否则返回 NaN。</li>
+<li>【类型转换】<code>vector(s: Scalar) -&gt; IV</code>: 将 s 转换为一个时间序列，其值为 s，没有标签。</li>
+</ul>
+<h4 id="排序">排序<a class="headerlink" href="#排序" title="Permanent link">&para;</a></h4>
+<ul>
+<li>【排序】<code>sort(v: IV) -&gt; IV</code>, <code>sort_desc(v: IV) -&gt; IV</code>: 返回 v 中的时间序列按照值排序后的结果。</li>
+<li>【按 label 排序】<code>sort_by_label(v: IV, label: String, ...) -&gt; IV</code>, <code>sort_by_label_desc(v: IV, label: String, ...) -&gt; IV</code>: 返回 v 中的时间序列按照指定 <code>label</code> 排序后的结果；如果标签一致，按样本值排序。<ul>
+<li>排序采用 <a href="https://en.wikipedia.org/wiki/Natural_sort_order">natural sort order</a>，即 <code>z2</code> 排在 <code>z11</code> 之前。</li>
+</ul>
+</li>
+</ul>
+<h4 id="用于-rv-的聚合">用于 RV 的聚合<a class="headerlink" href="#用于-rv-的聚合" title="Permanent link">&para;</a></h4>
+<p><code>&lt;aggregation&gt;_over_time(v: RV) -&gt; IV</code>: 随时间聚合 v 中的每个时间序列。<code>&lt;aggregation&gt;</code> 可以是给定区间内的：</p>
+<ul>
+<li><code>avg</code>：平均值；</li>
+<li><code>min</code>：最小值；</li>
+<li><code>max</code>：最大值；</li>
+<li><code>sum</code>：和；</li>
+<li><code>count</code>：计数；</li>
+<li><code>quantile_over_time(φ: Scalar, v: RV) -&gt; IV</code>：给定区间内的 φ 分位数；</li>
+<li><code>stddev</code>：标准差；</li>
+<li><code>stdvar</code>：方差；</li>
+<li><code>last</code>：最后一个值；</li>
+<li><code>present</code>：返回所有出现过的标签值，值均为 1。</li>
+</ul>
+<h4 id="直方图相关函数">直方图相关函数<a class="headerlink" href="#直方图相关函数" title="Permanent link">&para;</a></h4>
+<p><a href="https://prometheus.io/docs/prometheus/latest/querying/functions/#histogram_avg">TODO</a></p>
+<h3 id="25-subqueries--子查询">2.5 Subqueries | 子查询<a class="headerlink" href="#25-subqueries--子查询" title="Permanent link">&para;</a></h3>
+<p>查询中可以包含子查询。例如 <code>max_over_time(deriv(rate(distance_covered_total[5s])[30s:5s])[10m:])</code>，我们由内而外地解释这个查询的含义：</p>
+<ul>
+<li><code>[rv1]</code>: <code>distance_covered_total[5s]</code>：<code>RV</code>, 取 <code>distance_covered_total</code> 5s 内的采样值<ul>
+<li>我们可以理解为「5s 的各个采样点时内 (各个 label 标记的，下同) 车辆行进的距离」</li>
+</ul>
+</li>
+<li><code>[iv2]</code>: <code>rate(rv1)</code>: <code>IV</code>，计算 <code>rv1</code> 的增长率<ul>
+<li>我们可以理解为「5s 内的车辆行进的距离的增长率」，即「5s 内车辆的速度」</li>
+</ul>
+</li>
+<li><code>[rv3]</code>: <code>iv2[30s:5s]</code>: <code>RV</code>, 取增长率近 30s 的采样值，分辨率为 5s<ul>
+<li>分辨率 (resolution) 是指多少秒一个样本。即，<code>rv3</code> 由 <code>iv2</code> 近 30s 内每 5s 做一次查询的结果组成</li>
+<li>我们可以理解为「近 30s 内每 5s 的车辆速度」</li>
+</ul>
+</li>
+<li><code>[iv4]</code>: <code>deriv(rv3)</code>: <code>IV</code>，计算 <code>rv3</code> 中每个时间序列的导数<ul>
+<li>我们可以理解为「近 30s 内车辆速度的变化率」，即「30s 内车辆的加速度」</li>
+</ul>
+</li>
+<li><code>[rv5]</code>: <code>iv4[10m:]</code>: <code>RV</code>, 取 <code>iv4</code> 近 10m 的采样值<ul>
+<li><code>iv4[10m:]</code> 表示取 <code>iv4</code> 中最近 10m 的数据，分辨率为查询的默认设置</li>
+<li>我们可以理解为「近 10 分钟内各个采样点计算出的车辆的加速度」</li>
+</ul>
+</li>
+<li><code>[iv6]</code>: <code>max_over_time(rv5)</code>: <code>IV</code>，计算 <code>rv5</code> 中每个时间序列的最大值<ul>
+<li>我们可以理解为「近 10 分钟内车辆的最大加速度」</li>
+</ul>
+</li>
+</ul>
+<h3 id="26-api">2.6 API<a class="headerlink" href="#26-api" title="Permanent link">&para;</a></h3>
+<h4 id="261-即时查询">2.6.1 即时查询<a class="headerlink" href="#261-即时查询" title="Permanent link">&para;</a></h4>
+<p>即时查询获取 Query 在当前时间或给定时间点的结果；接口为 <code>/query</code>，参数包括 <code>query</code>, <code>time</code> 和 <code>timeout</code>。例如：</p>
+<div class="highlight"><pre><span></span><code><span class="n">INSTANT_QUERY</span> <span class="o">=</span> <span class="s2">&quot;query/&quot;</span>
+
+<span class="k">def</span> <span class="nf">instant_query</span><span class="p">(</span><span class="n">promql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">API</span><span class="si">}{</span><span class="n">INSTANT_QUERY</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="n">promql</span><span class="p">,</span>
+        <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">time</span><span class="p">,</span>
+        <span class="s2">&quot;timeout&quot;</span><span class="p">:</span> <span class="n">timeout</span>
+    <span class="p">}</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to query </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+<span class="n">promql</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;sum(fastapi_requests_total{path!=&quot;/metrics&quot;}) by (path)&#39;&#39;&#39;</span>
+<span class="n">time</span> <span class="o">=</span> <span class="s2">&quot;2024-07-01T20:00:00.000Z&quot;</span> <span class="c1"># rfc3339 OR unix_timestamp</span>
+<span class="n">timeout</span> <span class="o">=</span> <span class="s2">&quot;10s&quot;</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">instant_query</span><span class="p">(</span><span class="n">promql</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+<span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="" src="../topics/assets/2024-07-10-18-35-54.png" /></p>
+<p>(<code>pprint</code> 来自 <code>rich.pretty</code>。)</p>
+<p>使用 POST 也能够进行查询，例如：</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">instant_query</span><span class="p">(</span><span class="n">promql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">API</span><span class="si">}{</span><span class="n">INSTANT_QUERY</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="n">promql</span><span class="p">,</span>
+        <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">time</span><span class="p">,</span>
+        <span class="s2">&quot;timeout&quot;</span><span class="p">:</span> <span class="n">timeout</span>
+    <span class="p">}</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to query </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">instant_query</span><span class="p">(</span><span class="n">promql</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+<span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="" src="../topics/assets/2024-07-10-18-36-24.png" /></p>
+<p>查询的结果中有一个 <code>resultType</code>，表示结果的类型。结果可能是 <code>string</code>, <code>scalar</code>, <code>vector</code> (表示 Instant Vector), <code>matrix</code> (表示 Range Vector) 之一。这意味着我们也可以查询 RangeVector，例如：</p>
+<div class="highlight"><pre><span></span><code><span class="n">promql</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;sum(fastapi_requests_total{path=~&quot;/[^/]*&quot;}) by (path) [10m:2m]&#39;&#39;&#39;</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">instant_query</span><span class="p">(</span><span class="n">promql</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+<span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="" src="../topics/assets/2024-07-10-18-36-46.png" /></p>
+<p>如果不提供 <code>time</code>，则表示查询当前时间的结果：</p>
+<div class="highlight"><pre><span></span><code>result = instant_query(promql, None, timeout)
+pprint(result)
+</code></pre></div>
+<p><img alt="" src="../topics/assets/2024-07-10-18-37-08.png" /></p>
+<h4 id="262-范围查询">2.6.2 范围查询<a class="headerlink" href="#262-范围查询" title="Permanent link">&para;</a></h4>
+<p>范围查询获取 Query 在给定的一段时间内、给定频率下的结果；接口为 <code>/query_range</code>，参数包括 <code>query</code>, <code>start</code>, <code>end</code>, <code>step</code> 和 <code>timeout</code>。例如：</p>
+<div class="highlight"><pre><span></span><code><span class="n">RANGE_QUERY</span> <span class="o">=</span> <span class="s2">&quot;query_range/&quot;</span>
+
+<span class="k">def</span> <span class="nf">range_query</span><span class="p">(</span><span class="n">promql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">API</span><span class="si">}{</span><span class="n">RANGE_QUERY</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="n">promql</span><span class="p">,</span>
+        <span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="n">start</span><span class="p">,</span>
+        <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">end</span><span class="p">,</span>
+        <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="n">step</span><span class="p">,</span>
+        <span class="s2">&quot;timeout&quot;</span><span class="p">:</span> <span class="n">timeout</span>
+    <span class="p">}</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to query </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+<span class="n">promql</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;sum(fastapi_requests_total{path=~&quot;/v1/[^/]*/&quot;}) by (path)&#39;&#39;&#39;</span>
+<span class="n">start</span> <span class="o">=</span> <span class="s2">&quot;2024-07-01T20:00:00.000Z&quot;</span>
+<span class="n">end</span> <span class="o">=</span> <span class="s2">&quot;2024-07-01T20:10:00.000Z&quot;</span>
+<span class="n">step</span> <span class="o">=</span> <span class="s2">&quot;5m&quot;</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">range_query</span><span class="p">(</span><span class="n">promql</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+<span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="" src="../topics/assets/2024-07-10-18-39-03.png" /></p>
+<p>但是，range query 不支持查询 Range Vector，只能查询 Instant Vector, Scalar 或 String。因为 Range Vector 本身就是一段时间内的 Instant Vector，所以范围查询的结果是一个 <code>matrix</code>：</p>
+<div class="highlight"><pre><span></span><code><span class="n">promql</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;sum(fastapi_requests_total) by (path) [10m:2m]&#39;&#39;&#39;</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">range_query</span><span class="p">(</span><span class="n">promql</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</code></pre></div>
+<p>结果是 <code>Failed to query &lt;API&gt;: {"status":"error","errorType":"bad_data","error":"invalid expression type \"range vector\" for range query, must be Scalar or instant Vector"}</code>。</p>
+<p>即使查询结果是一个 Scalar，返回类型也是一个 <code>matrix</code>：</p>
+<div class="highlight"><pre><span></span><code><span class="n">promql</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;pi()&#39;&#39;&#39;</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">range_query</span><span class="p">(</span><span class="n">promql</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+<span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="" src="../topics/assets/2024-07-10-18-41-11.png" /></p>
+<h4 id="其他接口">其他接口<a class="headerlink" href="#其他接口" title="Permanent link">&para;</a></h4>
+<p>还有更多接口可以玩！详见 <a href="https://prometheus.io/docs/prometheus/latest/querying/api/">HTTP API | Prometheus</a></p>
+<h2 id="3-examples">3 Examples<a class="headerlink" href="#3-examples" title="Permanent link">&para;</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>这一节会记录一些我用到 / 见到的查询样例。</p>
+</div>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="最后更新">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1-2.1-2M12.5 7v5.2l4 2.4-1 1L11 13V7h1.5M11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2v1.8Z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-07-10T10:45:23+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-07-10</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="创建日期">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3h-2Z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-07-10T10:45:23+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-07-10</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+  
+
+
+  
+
+
+<div id="__comments">
+
+<h3>颜色主题调整</h3>
+
+<!-- <div class="tx-switch">
+<button data-md-color-scheme="default"><code>default</code></button>
+<button data-md-color-scheme="slate"><code>slate</code></button>
+</div>
+
+<script>
+var buttons = document.querySelectorAll("button[data-md-color-scheme]")
+buttons.forEach(function(button) {
+        button.addEventListener("click", function() {
+        var attr = this.getAttribute("data-md-color-scheme")
+        document.body.setAttribute("data-md-color-scheme", attr)
+        localStorage.setItem("data-md-color-scheme",attr);
+        updateScheme();
+        })
+})
+</script> -->
+
+<div class="tx-switch">
+<button class="button1" data-md-color-primary="red" style="background-color:red">red</button>
+<button class="button1" data-md-color-primary="pink" style="background-color:pink;color:black">pink</button>
+<button class="button1" data-md-color-primary="purple" style="background-color:purple">purple</button>
+<button class="button1" data-md-color-primary="indigo" style="background-color:indigo">indigo</button>
+<button class="button1" data-md-color-primary="blue" style="background-color:blue">blue</button>
+<button class="button1" data-md-color-primary="cyan" style="background-color:cyan;color:black">cyan</button>
+<button class="button1" data-md-color-primary="teal" style="background-color:teal">teal</button>
+<button class="button1" data-md-color-primary="green" style="background-color:green">green</button>
+<button class="button1" data-md-color-primary="lime" style="background-color:lime;color:black">lime</button>
+<button class="button1" data-md-color-primary="orange" style="background-color:orange;color:black">orange</button>
+<button class="button1" data-md-color-primary="brown" style="background-color:brown;border-radius=3px">brown</button>
+<button class="button1" data-md-color-primary="grey" style="background-color:grey">grey</button>
+<button class="button1" data-md-color-primary="black" style="background-color:black">black</button>
+<button class="button1" data-md-color-primary="white" style="background-color:white;color:black">white</button>
+</div>
+
+<script>
+var buttons = document.querySelectorAll("button[data-md-color-primary]")
+buttons.forEach(function(button) {
+        button.addEventListener("click", function() {
+        var attr = this.getAttribute("data-md-color-primary")
+        document.body.setAttribute("data-md-color-primary", attr)
+        localStorage.setItem("data-md-color-primary",attr);
+        })
+})
+</script>
+
+<h2 ><!-- 评论 -->评论区~</h2>
+
+有用的话请给我个赞和 star => <a href="https://github.com/xuan-insr/xuan-insr.github.io"><img alt="GitHub stars" src="https://img.shields.io/github/stars/xuan-insr/xuan-insr.github.io.svg?style=plastic&amp;label=Stars"></a>
+
+</br>
+
+快来跟我聊天~
+
+</div>
+
+<script src="https://giscus.app/client.js"
+        data-repo="xuan-insr/discussion"
+        data-repo-id="R_kgDOIUW7XA"
+        data-category="General"
+        data-category-id="DIC_kwDOIUW7XM4CSOC3"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="dark"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+
+updateScheme();
+
+</script>
+
+<!-- Synchronize Giscus theme with palette -->
+<script>
+var giscus = document.querySelector("script[src*=giscus]")
+
+/* Set palette on initial load */
+var palette = __md_get("__palette")
+if (palette && typeof palette.color === "object") {
+    var theme = palette.color.scheme === "slate" ? "dark" : "light"
+    giscus.setAttribute("data-theme", theme) 
+}
+
+/* Register event handlers after documented loaded */
+document.addEventListener("DOMContentLoaded", function() {
+    var ref = document.querySelector("[data-md-component=palette]")
+    ref.addEventListener("change", function() {
+    var palette = __md_get("__palette")
+    if (palette && typeof palette.color === "object") {
+        var theme = palette.color.scheme === "slate" ? "dark" : "light"
+        localStorage.setItem("data-md-color-scheme", palette.color.scheme === "slate" ? "slate" : "default");
+        /* Instruct Giscus to change theme */
+        var frame = document.querySelector(".giscus-frame")
+        frame.contentWindow.postMessage(
+        { giscus: { setConfig: { theme } } },
+        "https://giscus.app"
+        )
+    }
+    })
+})
+</script>
+      
+    </article>
+  </div>
+
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      本页面的全部内容在 <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh">CC BY-SA 4.0</a> 和 <a href="https://github.com/zTrix/sata-license">SATA</a> 协议之条款下提供，附加条款亦可能应用
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/smd1121" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:xianyuxuan@outlook.com" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l217.6 163.2c11.4 8.5 27 8.5 38.4 0l217.6-163.2c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48H48zM0 176v208c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V176L294.4 339.2a63.9 63.9 0 0 1-76.8 0L0 176z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "content.code.annotate", "navigation.indexes", "navigation.top", "navigation.sections", "navigation.expand", "toc.follow"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+        <script src="../../js/timeago.min.js"></script>
+      
+        <script src="../../js/timeago_mkdocs_material.js"></script>
+      
+        <script src="../../from_oi_wiki/js/extra.js"></script>
+      
+        <script src="../../js/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js"></script>
+      
+        <script src="../../js/tablesort.js"></script>
+      
+        <script src="../../termynal.js"></script>
+      
+    
+  </body>
+</html>
